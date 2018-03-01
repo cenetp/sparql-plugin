@@ -1,19 +1,19 @@
 /**
  * Copyright (c) 2002-2014 "Neo Technology,"
  * Network Engine for Objects in Lund AB [http://neotechnology.com]
- *
+ * <p>
  * This file is part of Neo4j.
- *
+ * <p>
  * Neo4j is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -49,7 +49,6 @@ public class SPARQLPlugin extends ServerPlugin {
     private GraphSail sail;
     private SPARQLParser parser;
     private SailRepositoryConnection sc;
-    private Neo4j2Graph neo4jGraph;
 
     @Name("execute_sparql")
     @Description("execute a SPARQL query.")
@@ -62,7 +61,7 @@ public class SPARQLPlugin extends ServerPlugin {
         initSail(neo4j);
         try (Transaction tx = neo4j.beginTx()) {
 
-            ParsedQuery query = null;
+            ParsedQuery query;
             CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
 
             query = parser.parseQuery(queryString, "http://neo4j.org");
@@ -90,7 +89,7 @@ public class SPARQLPlugin extends ServerPlugin {
 
     private void initSail(GraphDatabaseService neo4j) {
         if (sail == null) {
-            neo4jGraph = new Neo4j2Graph(neo4j);
+            Neo4j2Graph neo4jGraph = new Neo4j2Graph(neo4j);
             sail = new GraphSail<KeyIndexableGraph>(neo4jGraph);
             try {
                 sail.initialize();
@@ -116,16 +115,10 @@ public class SPARQLPlugin extends ServerPlugin {
         initSail(neo4j);
         ValueFactory vf = sail.getValueFactory();
         try {
-            try {
-                sc.add(vf.createURI(s), vf.createURI(p), vf.createURI(o),
-                        vf.createURI(c));
-            } catch (IllegalArgumentException ia) {
-                sc.add(vf.createURI(s), vf.createURI(p), vf.createLiteral(o),
-                        vf.createURI(c));
-            }
+            sc.add(vf.createURI(s), vf.createURI(p), vf.createURI(o), vf.createURI(c));
+            sc.add(vf.createURI(s), vf.createURI(p), vf.createLiteral(o), vf.createURI(c));
             sc.commit();
-
-        } catch (RepositoryException e) {
+        } catch (RepositoryException | IllegalArgumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
